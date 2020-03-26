@@ -14,10 +14,14 @@ import Name from './Name';
 import Wrapper from './Wrapper';
 
 const InputMedia = ({ label, onChange, name, attribute, value, type }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modal, setModal] = useState({
+    isOpen: false,
+    step: null,
+  });
   const [fileToDisplay, setFileToDisplay] = useState(0);
+
   const handleClickToggleModal = () => {
-    setIsModalOpen(prev => !prev);
+    setModal(prev => ({ isOpen: !prev.isOpen }));
   };
   const hasNoValue = Array.isArray(value) && value.length === 0;
 
@@ -41,6 +45,17 @@ const InputMedia = ({ label, onChange, name, attribute, value, type }) => {
     }
   };
 
+  const handleRemoveFile = () => {
+    const newValue = attribute.multiple
+      ? value.filter((file, index) => index !== fileToDisplay)
+      : null;
+    handleChange(newValue);
+  };
+
+  const handleEditFile = () => {
+    setModal(() => ({ isOpen: true, step: 'edit' }));
+  };
+
   const displaySlidePagination =
     attribute.multiple && value.length > 1 ? ` (${fileToDisplay + 1}/${value.length})` : '';
 
@@ -51,6 +66,13 @@ const InputMedia = ({ label, onChange, name, attribute, value, type }) => {
       <CardPreviewWrapper>
         <CardControlWrapper>
           <CardControl color="#9EA7B8" type="plus" onClick={handleClickToggleModal} />
+          {!hasNoValue && (
+            <>
+              <CardControl color="#9EA7B8" type="pencil" onClick={handleEditFile} />
+              <CardControl color="#9EA7B8" type="link" onClick={handleClickToggleModal} />
+              <CardControl color="#9EA7B8" type="trash-alt" onClick={handleRemoveFile} />
+            </>
+          )}
         </CardControlWrapper>
         {hasNoValue ? (
           <EmptyInputMedia onClick={handleClickToggleModal}>
@@ -66,9 +88,10 @@ const InputMedia = ({ label, onChange, name, attribute, value, type }) => {
         )}
       </CardPreviewWrapper>
 
-      {isModalOpen && (
+      {modal.isOpen && (
         <InputModalStepper
-          isOpen={isModalOpen}
+          isOpen={modal.isOpen}
+          step={modal.step}
           multiple={attribute.multiple}
           onInputMediaChange={handleChange}
           selectedFiles={value}
